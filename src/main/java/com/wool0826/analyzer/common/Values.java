@@ -1,4 +1,4 @@
-package com.wool0826.analyzer.utils;
+package com.wool0826.analyzer.common;
 
 import lombok.Getter;
 

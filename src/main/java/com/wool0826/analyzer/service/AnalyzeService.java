@@ -1,7 +1,11 @@
-package com.wool0826.analyzer.Application;
+package com.wool0826.analyzer.service;
 
+import com.wool0826.analyzer.common.Status;
+import com.wool0826.analyzer.thread.CalculateThread;
+import com.wool0826.analyzer.thread.FetchThread;
 import com.wool0826.analyzer.entity.Node;
-import com.wool0826.analyzer.utils.Converter;
+import com.wool0826.analyzer.queue.QueueWorking;
+import com.wool0826.analyzer.thread.RunnableWorker;
 
 import javax.swing.*;
 import java.io.File;
@@ -9,12 +13,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Analyzer {
+public class AnalyzeService {
     private Node rootNode;
+    private FetchThread fetchThread;
+    private CalculateThread calculateThread;
 
-    public Analyzer() {
+    public AnalyzeService() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            fetchThread = new FetchThread();
+            calculateThread = new CalculateThread();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -25,22 +33,30 @@ public class Analyzer {
         //String selectedDrive = selectDrive();
 
         // dev
-        String selectedDrive = "E:\\Download";
+        String selectedDrive = "/Users/user/Downloads";
+
+        if(selectedDrive == null) {
+            return;
+        }
 
         rootNode = Node.builder()
                 .path(selectedDrive)
                 .name(selectedDrive)
+                .isDirectory(true)
                 .build();
 
-        rootNode.setList(Converter.convertPathToNodeList(rootNode, selectedDrive));
-
         try {
+            RunnableWorker runnable = new RunnableWorker(rootNode);
+            QueueWorking.add(runnable);
 
+            fetchThread.start();
+            calculateThread.start();
+
+            while(!rootNode.isFinished()){}
+            Status.setFinished();
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        System.out.println(rootNode.getPath() + " " + rootNode.getName() + " " + rootNode.getSize());
     }
 
     public static String selectDrive() {

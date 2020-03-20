@@ -1,4 +1,4 @@
-package com.wool0826.analyzer.Application;
+package com.wool0826.analyzer.service;
 
 import java.awt.Container;
 import java.awt.GridLayout;
@@ -6,14 +6,14 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 
-public class Loader extends JFrame {
+public class LoaderService extends JFrame {
     public JProgressBar pb = new JProgressBar();
     public JLabel p = new JLabel("");
     public int total;
     public int count;
     public String path;
 
-    public Loader(int total) {
+    public LoaderService(int total) {
         this.total = total;
 
         setLayout(new GridLayout(2, 1, 0, 5));
