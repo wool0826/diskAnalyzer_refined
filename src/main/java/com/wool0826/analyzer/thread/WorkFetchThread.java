@@ -4,20 +4,27 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.wool0826.analyzer.queue.QueueWorking;
+import com.wool0826.analyzer.repository.QueueInCompletedWork;
+import com.wool0826.analyzer.repository.WorkStatus;
+import lombok.Synchronized;
 
-public class FetchThread extends Thread {
+public class WorkFetchThread extends Thread {
     private final int numberThread = 4;
     private ExecutorService executorService = Executors.newFixedThreadPool(numberThread);
 
     @Override
     public void run() {
-        while (!Status.isFinished()) {
-            Runnable runnable = QueueWorking.get();
-            if (runnable == null)
-                continue;
-
-            executorService.submit(runnable);
+        while (!WorkStatus.isFinished()) {
+            Runnable runnable = QueueInCompletedWork.get();
+            if (runnable == null) {
+                try {
+                    sleep(100);
+                } catch (InterruptedException exception) {
+                    interrupt();
+                }
+            } else {
+                executorService.submit(runnable);
+            }
         }
 
         executorService.shutdown();

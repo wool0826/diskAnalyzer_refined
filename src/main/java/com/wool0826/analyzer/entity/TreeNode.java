@@ -7,12 +7,12 @@ import javax.swing.tree.DefaultMutableTreeNode;
 @Getter
 public class TreeNode extends DefaultMutableTreeNode {
     private Node node;
-    private boolean isAdded;
+    private boolean isExpanded;
 
     public TreeNode(Node node) {
-        super(node.toText());
+        super(node.toStringWithPostFix());
         this.node = node;
-        this.isAdded = false;
+        this.isExpanded = false;
     }
 
     @Override
@@ -20,14 +20,14 @@ public class TreeNode extends DefaultMutableTreeNode {
        return node.getList() == null;
     }
 
-    public void addChild() {
-        if(!node.isDirectory() || isAdded)
+    public void addChildTreeNode() {
+        if(!node.isDirectory() || isExpanded)
             return;
 
         node.getList().stream()
             .map(TreeNode::new)
             .forEach(node -> {
-                node.addChild();
+                node.addChildTreeNode();
                 this.add(node);
             });
     }

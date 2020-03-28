@@ -1,32 +1,35 @@
 package com.wool0826.analyzer.thread;
 
+import com.wool0826.analyzer.repository.WorkStatus;
 import com.wool0826.analyzer.type.NodeType;
-import com.wool0826.analyzer.utils.TimeChecker;
+import com.wool0826.analyzer.repository.TimeChecker;
 import com.wool0826.analyzer.entity.Node;
-import com.wool0826.analyzer.queue.QueueCompleted;
+import com.wool0826.analyzer.repository.QueueCompletedNode;
+import lombok.Synchronized;
 
-public class CalculateThread extends Thread {
+public class SizeCalculateThread extends Thread {
+
     @Override
     public void run() {
-        while(!Status.isFinished()) {
-            Node node = QueueCompleted.get();
+        while(!WorkStatus.isFinished()) {
+            Node node = QueueCompletedNode.get();
 
             if(node == null) {
                 try {
-                    Thread.sleep(100);
+                    sleep(100);
                 } catch (InterruptedException exception) {
                     Thread.currentThread().interrupt();
                 }
             } else if(node.isFinished()) {
-                node.updateSizeOnParent();
+                node.updateParentSize();
 
                 if(node.getNodeType() == NodeType.ROOT) {
-                    Status.setFinished();
+                    WorkStatus.setFinished();
                     System.out.println(TimeChecker.end());
-                    System.out.println(node.toText());
+                    System.out.println(node.toStringWithPostFix());
                 }
             } else {
-                QueueCompleted.add(node);
+                QueueCompletedNode.add(node);
             }
         }
     }

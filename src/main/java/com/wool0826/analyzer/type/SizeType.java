@@ -7,7 +7,8 @@ public enum SizeType {
     B(1D, "B"),
     KB(1024D, "KB"),
     MB(1024*1024D, "MB"),
-    GB(1024*1024*1024D, "GB")
+    GB(1024*1024*1024D, "GB"),
+    TB(1024*1024*1024*1024D, "TB")
     ;
 
     private double size;

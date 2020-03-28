@@ -1,13 +1,13 @@
 package com.wool0826.analyzer.service;
 
 import com.wool0826.analyzer.type.NodeType;
-import com.wool0826.analyzer.thread.Status;
-import com.wool0826.analyzer.utils.TimeChecker;
-import com.wool0826.analyzer.thread.CalculateThread;
-import com.wool0826.analyzer.thread.FetchThread;
+import com.wool0826.analyzer.repository.WorkStatus;
+import com.wool0826.analyzer.repository.TimeChecker;
+import com.wool0826.analyzer.thread.SizeCalculateThread;
+import com.wool0826.analyzer.thread.WorkFetchThread;
 import com.wool0826.analyzer.entity.Node;
-import com.wool0826.analyzer.queue.QueueWorking;
-import com.wool0826.analyzer.thread.RunnableWorker;
+import com.wool0826.analyzer.repository.QueueInCompletedWork;
+import com.wool0826.analyzer.thread.WorkRunnable;
 
 import javax.swing.*;
 import java.io.File;
@@ -16,16 +16,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class AnalyzeService {
-    private Node rootNode;
-    private FetchThread fetchThread;
-    private CalculateThread calculateThread;
+    private WorkFetchThread workFetchThread;
+    private SizeCalculateThread sizeCalculateThread;
     private TreeService treeService;
 
     public AnalyzeService() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            fetchThread = new FetchThread();
-            calculateThread = new CalculateThread();
+            workFetchThread = new WorkFetchThread();
+            sizeCalculateThread = new SizeCalculateThread();
             treeService = new TreeService();
         } catch (Exception e) {
             e.printStackTrace();
@@ -41,25 +40,25 @@ public class AnalyzeService {
 
         TimeChecker.start();
 
-        rootNode = Node.builder()
-                .path(selectedDrive)
-                .name(selectedDrive)
-                .isDirectory(true)
-                .nodeType(NodeType.ROOT)
-                .build();
+        Node rootNode = Node.builder()
+            .path(selectedDrive)
+            .name(selectedDrive)
+            .isDirectory(true)
+            .nodeType(NodeType.ROOT)
+            .build();
 
         try {
-            RunnableWorker runnable = new RunnableWorker(rootNode);
-            QueueWorking.add(runnable);
+            WorkRunnable runnable = new WorkRunnable(rootNode);
+            QueueInCompletedWork.add(runnable);
 
-            fetchThread.start();
-            calculateThread.start();
+            workFetchThread.start();
+            sizeCalculateThread.start();
 
-            while(!Status.isFinished()) {
+            while(!WorkStatus.isFinished()) {
                 Thread.sleep(100);
             }
 
-            JFrame jframe = treeService.showTree(rootNode);
+            treeService.showTree(rootNode);
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
         } catch (Exception e) {
