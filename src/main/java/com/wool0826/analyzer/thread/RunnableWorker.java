@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import com.wool0826.analyzer.entity.Node;
 import com.wool0826.analyzer.queue.QueueCompleted;
 import com.wool0826.analyzer.queue.QueueWorking;
+import lombok.extern.slf4j.Slf4j;
 
 public class RunnableWorker implements Runnable {
     Node node;

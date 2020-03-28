@@ -1,6 +1,8 @@
 package com.wool0826.analyzer.service;
 
-import com.wool0826.analyzer.common.Status;
+import com.wool0826.analyzer.type.NodeType;
+import com.wool0826.analyzer.thread.Status;
+import com.wool0826.analyzer.utils.TimeChecker;
 import com.wool0826.analyzer.thread.CalculateThread;
 import com.wool0826.analyzer.thread.FetchThread;
 import com.wool0826.analyzer.entity.Node;
@@ -17,32 +19,33 @@ public class AnalyzeService {
     private Node rootNode;
     private FetchThread fetchThread;
     private CalculateThread calculateThread;
+    private TreeService treeService;
 
     public AnalyzeService() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             fetchThread = new FetchThread();
             calculateThread = new CalculateThread();
+            treeService = new TreeService();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void analyze() {
-        //real
-        //String selectedDrive = selectDrive();
-
-        // dev
-        String selectedDrive = "/Users/user/Downloads";
+        String selectedDrive = selectDrive();
 
         if(selectedDrive == null) {
             return;
         }
 
+        TimeChecker.start();
+
         rootNode = Node.builder()
                 .path(selectedDrive)
                 .name(selectedDrive)
                 .isDirectory(true)
+                .nodeType(NodeType.ROOT)
                 .build();
 
         try {
@@ -52,8 +55,13 @@ public class AnalyzeService {
             fetchThread.start();
             calculateThread.start();
 
-            while(!rootNode.isFinished()){}
-            Status.setFinished();
+            while(!Status.isFinished()) {
+                Thread.sleep(100);
+            }
+
+            JFrame jframe = treeService.showTree(rootNode);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             e.printStackTrace();
         }

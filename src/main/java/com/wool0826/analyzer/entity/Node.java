@@ -1,18 +1,21 @@
 package com.wool0826.analyzer.entity;
 
-import com.wool0826.analyzer.common.Values;
+import com.wool0826.analyzer.type.NodeType;
+import com.wool0826.analyzer.type.SizeType;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Synchronized;
 import lombok.ToString;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+
+import static j2html.TagCreator.li;
 
 @Data
 @Builder
@@ -23,6 +26,7 @@ public class Node {
     private Node parent;
     private boolean isDirectory;
     private List<Node> list;
+    private NodeType nodeType;
 
     @Builder.Default
     private AtomicLong size = new AtomicLong(0);
@@ -36,15 +40,23 @@ public class Node {
 
     public String getCalculatedSize(){
         long size = this.size.get();
+        DecimalFormat decimalFormat = new DecimalFormat("#.###");
 
-        if(size >= Values.GB.getSize()) {
-            return (size / Values.GB.getSize()) + " " + Values.GB.getCode();
-        } else if (size >= Values.MB.getSize()) {
-            return (size / Values.MB.getSize()) + " " + Values.MB.getCode();
-        } else if (size >= Values.KB.getSize()) {
-            return (size / Values.KB.getSize()) + " " + Values.KB.getCode();
+        if(size/1000.0 >= SizeType.GB.getSize()) {
+            double refinedSize = (size / SizeType.GB.getSize()) / 1000;
+            return decimalFormat.format(refinedSize) + " TB";
+        } else if(size >= SizeType.GB.getSize()) {
+            double refinedSize =(size / SizeType.GB.getSize());
+            return decimalFormat.format(refinedSize) + " " + SizeType.GB.getCode();
+        } else if (size >= SizeType.MB.getSize()) {
+            double refinedSize =(size / SizeType.MB.getSize());
+            return decimalFormat.format(refinedSize) + " " + SizeType.MB.getCode();
+        } else if (size >= SizeType.KB.getSize()) {
+            double refinedSize =(size / SizeType.KB.getSize());
+            return decimalFormat.format(refinedSize) + " " + SizeType.KB.getCode();
         } else {
-            return size + " " + Values.B.getCode();
+            double refinedSize =(size / SizeType.B.getSize());
+            return decimalFormat.format(refinedSize) + " " + SizeType.B.getCode();
         }
     }
 
@@ -53,6 +65,7 @@ public class Node {
 
         if(file.listFiles() == null) {
             this.list = new ArrayList<>();
+            return;
         }
 
         this.list = Arrays.asList(file.listFiles()).stream()
@@ -60,14 +73,13 @@ public class Node {
                 .path(f.getAbsolutePath())
                 .name(f.getName())
                 .parent(this)
-                .isDirectory(f.isDirectory())
+                .isDirectory(!f.isFile() && (f.isDirectory()))
+                .nodeType(isDirectory ? NodeType.DIR : NodeType.FILE)
                 .build())
             .collect(Collectors.toList());
     }
 
     public void updateSizeOnParent() {
-        System.out.println(toText());
-
         if(this.parent == null){
             return;
         }
@@ -80,13 +92,12 @@ public class Node {
         if(!isDirectory) {
             return true;
         }
+        else if(this.list == null) {
+            return false;
+        }
         else {
             return (this.finishedCount.get() == this.list.size());
         }
-    }
-
-    public long getSize() {
-        return this.size.get();
     }
 
     public void setSize(long size) {

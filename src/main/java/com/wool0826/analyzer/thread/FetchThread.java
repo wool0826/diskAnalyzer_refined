@@ -4,12 +4,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.wool0826.analyzer.common.Status;
-import com.wool0826.analyzer.common.Values;
 import com.wool0826.analyzer.queue.QueueWorking;
 
 public class FetchThread extends Thread {
-    ExecutorService executorService = Executors.newFixedThreadPool(Values.NTHREAD.getSize());
+    private final int numberThread = 4;
+    private ExecutorService executorService = Executors.newFixedThreadPool(numberThread);
 
     @Override
     public void run() {

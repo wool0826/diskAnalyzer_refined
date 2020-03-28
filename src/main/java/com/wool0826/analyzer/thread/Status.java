@@ -1,4 +1,4 @@
-package com.wool0826.analyzer.common;
+package com.wool0826.analyzer.thread;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
